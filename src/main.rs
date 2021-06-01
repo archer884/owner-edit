@@ -21,11 +21,11 @@ enum Command {
     /// Add an owner
     Add(Change),
     /// List all owners
-    #[structopt(name = "rm")]
     List,
     /// Pretty-print the owners file
     Print,
     /// Remove an owner
+    #[structopt(name = "rm")]
     Remove(Change),
 }
 
