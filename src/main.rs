@@ -21,6 +21,7 @@ enum Command {
     Add(Change),
     #[structopt(name = "rm")]
     Remove(Change),
+    List,
 }
 
 #[derive(Clone, Debug, StructOpt)]
@@ -77,6 +78,10 @@ fn run(opts: &Opts) -> io::Result<()> {
 
     match &opts.command {
         Command::Add(add) => add_user(&mut permissions, add),
+        Command::List => {
+            list_users(&permissions);
+            return Ok(());
+        }
         Command::Remove(remove) => remove_user(&mut permissions, remove),
     }
 
@@ -101,6 +106,19 @@ fn remove_user(permissions: &mut Permissions, change: &Change) {
             listing.remove(user);
         });
     });
+}
+
+fn list_users(permissions: &Permissions) {
+    let users: BTreeSet<_> = permissions
+        .groups
+        .iter()
+        .flat_map(|(_, group)| group.environments.iter())
+        .flat_map(|(_, environment)| environment)
+        .collect();
+
+    for user in users {
+        println!("{}", user);
+    }
 }
 
 fn filter_user_listings<'a>(
