@@ -18,10 +18,15 @@ struct Opts {
 
 #[derive(Clone, Debug, StructOpt)]
 enum Command {
+    /// Add an owner
     Add(Change),
+    /// List all owners
     #[structopt(name = "rm")]
-    Remove(Change),
     List,
+    /// Pretty-print the owners file
+    Print,
+    /// Remove an owner
+    Remove(Change),
 }
 
 #[derive(Clone, Debug, StructOpt)]
@@ -82,6 +87,8 @@ fn run(opts: &Opts) -> io::Result<()> {
             list_users(&permissions);
             return Ok(());
         }
+        // To pretty print the file is literally a no-op
+        Command::Print => (),
         Command::Remove(remove) => remove_user(&mut permissions, remove),
     }
 
