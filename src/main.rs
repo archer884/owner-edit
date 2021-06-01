@@ -20,6 +20,8 @@ struct Opts {
 enum Command {
     /// Add an owner
     Add(Change),
+    /// Assert that two permissions sets are equal
+    Eq { path: String },
     /// List all owners
     List,
     /// Pretty-print the owners file
@@ -38,13 +40,13 @@ struct Change {
     groups: Vec<String>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 struct Permissions {
     #[serde(flatten)]
     groups: BTreeMap<String, DevGroup>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 struct DevGroup {
     #[serde(flatten)]
     environments: BTreeMap<String, BTreeSet<String>>,
@@ -83,6 +85,18 @@ fn run(opts: &Opts) -> io::Result<()> {
 
     match &opts.command {
         Command::Add(add) => add_user(&mut permissions, add),
+        Command::Eq { path } => {
+            let compare = fs::read_to_string(path)?;
+            let compare: Permissions = serde_json::from_str(&compare)?;
+
+            if permissions != compare {
+                println!("Mismatch in permissions");
+                std::process::exit(1);
+            } else {
+                println!("Permissions match");
+                return Ok(());
+            }
+        }
         Command::List => {
             list_users(&permissions);
             return Ok(());
